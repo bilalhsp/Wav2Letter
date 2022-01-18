@@ -18,3 +18,32 @@ class Text_Processor():
             indices.append(self.char_to_idx[c])
 
         return indices
+    
+    def indices_to_text(self, indices):
+        text = []
+        for i in indices:
+            c = self.idx_to_char[i]
+            if c == '<space>':
+                c = ' '
+            text.append(c)
+        return text
+    
+    def label_to_text(self, label):
+        batch_size = label.shape[0]
+        strings = []
+        for n in range(batch_size):
+            char = ''
+            
+            for i in label[n]:
+                c = self.idx_to_char[i.item()]
+                if c == '<space>':
+                    c = ' '
+                char = char+c
+            strings.append(char)
+        return strings
+        
+    def c_to_text(self, chars):
+        text = ''
+        for c in chars:
+            text = text+c
+        return text

@@ -6,17 +6,19 @@ from torch.utils.data import DataLoader
 
 from ASR.utils import Text_Processor
 
-class Data_Loader():
-    def __init__(self, data_dir, vocab_path, sample_rate=16000,n_mels=40,win_length=400, hop_length=160):
+class Dataset():
+    def __init__(self, data_dir, vocab_path, data='training', download='False', sample_rate=16000,n_mels=40,win_length=400, hop_length=160):
         # sample_rate, n_mels, win_length and hop_length are matched with 'wav2letter2'
-         
-        self.train_dataset = torchaudio.datasets.LIBRISPEECH(data_dir)
+        if data == 'training':
+            self.dataset = torchaudio.datasets.LIBRISPEECH(data_dir, url='train-clean-100', download=download)
+        else:
+            self.dataset = torchaudio.datasets.LIBRISPEECH(data_dir, url='test-clean', download=download)
         self.text_processor = Text_Processor(vocab_path=vocab_path)
         self.transform = torchaudio.transforms.MelSpectrogram(sample_rate=sample_rate,n_mels=n_mels,win_length=win_length, hop_length=hop_length)
 
-    def load_data(self, batch_size, train=True):
-        if train:
-            loader = DataLoader(self.train_dataset, batch_size=batch_size, collate_fn=lambda x: self.pad_sequence(x))
+    def load_data(self, batch_size, shuffle=False):
+        
+        loader = DataLoader(self.dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=lambda x: self.pad_sequence(x))
 
         return loader 
 

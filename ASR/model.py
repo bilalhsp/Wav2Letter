@@ -1,5 +1,12 @@
+from tabnanny import check
 import torch
 import torch.nn as nn
+import os
+import time
+import jiwer
+import fnmatch
+
+from ASR.utils import Text_Processor
 
 class Gated_Conv(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size)->None:
@@ -23,6 +30,7 @@ class Gated_Conv(nn.Module):
 class Wav2Letter2(nn.Module):
     def __init__(self) -> None:
         super(Wav2Letter2, self).__init__()
+        #self.processor = Text_Processor(vocab_path=vocab_path)
         self.conv1 = Gated_Conv(in_channels=40, out_channels=100, kernel_size=3)
         self.dropout1 = nn.Dropout(0.25)
         self.gated_conv_stack = nn.Sequential(*[Gated_Conv(in_channels=100, out_channels=100, kernel_size=4+i) for i in range(15)])
@@ -46,6 +54,8 @@ class Wav2Letter2(nn.Module):
 
         self.linear1 = nn.Linear(in_features=375, out_features=1000)
         self.linear2 = nn.Linear(in_features=1000, out_features=29)
+
+        self.softmax = nn.Softmax(dim=2)
         
 
 
@@ -78,4 +88,157 @@ class Wav2Letter2(nn.Module):
         # (batch, time, classes)
         
         return out
+    # def decode(self, x, blank=28):
+    #     torch.no_grad()
+    #     x = self.forward(x)
+    #     x = nn.functional.log_softmax(x, dim=2)
+    #     out = torch.argmax(x, dim=2)
+    #     #print(out.squeeze())
+    #     pred = []
+    #     batch_size = out.shape[0]
+    #     for n in range(batch_size):
+    #         indices = []
+    #         prev_i = -1
+    #         for i in out[n]:
+    #             if i ==  prev_i:
+    #                 continue
+    #             if i == blank:
+    #                 prev_i = -1
+    #                 continue
+    #             prev_i = i
+    #             indices.append(i.item())
+    #         text = self.processor.indices_to_text(indices)
+    #         pred.append(self.processor.c_to_text(text))
+    #     return pred
 
+
+
+    
+
+class SpeechRecognition(nn.Module):
+    def __init__(self, vocab_path) -> None:
+        super(SpeechRecognition, self).__init__()
+        self.model = Wav2Letter2()
+        self.processor = Text_Processor(vocab_path=vocab_path)
+        self.softmax = nn.Softmax(dim=2)
+        self.results_dir = './saved_results'
+
+    def train(self, dataset, test_dataset, batch_size=128, epochs=1, learning_rate=0.9 ,momentum=0.9,
+            load_weights=False, device='cpu'):
+        self.model = self.model.to(device)
+        
+        opt = torch.optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
+        loss_fn = nn.CTCLoss(blank=28)
+
+        if load_weights:
+            files = []
+            for f in os.listdir(self.results_dir):
+                if fnmatch.fnmatch(f, "checkpoint*.pt"):
+                    files.append(f)
+            files.sort()
+            chkpoint = files[-1]
+            checkpoint = torch.load(os.path.join(self.results_dir, chkpoint))
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            opt.load_state_dict(checkpoint['opt_state_dict'])
+            start_epoch = checkpoint['epoch']
+            if not os.path.exits(os.path.join(self.results_dir, "results.txt")):
+                with open(os.path.join(self.results_dir, "results.txt"), 'w') as f:
+                    f.write(f"Epoch, Exe_time, CTCLoss \n")
+
+        else:
+            start_epoch = 0
+            with open(os.path.join(self.results_dir, "results.txt"), 'w') as f:
+                    f.write(f"Epoch, Exe_time, CTCLoss \n")
+        train_loader = dataset.load_data(batch_size=batch_size)
+        epochs = start_epoch + epochs
+        loss_history = {}
+        for epoch in range(start_epoch,epochs):
+            start_time = time.time()
+            print(f"Epoch [{epoch}]/[{epochs}]", end=": ")
+            count = 0
+            loss_cum = 0
+            self.model.train()
+            for mini_batch in train_loader:
+                count += 1
+
+                x,y, input_len, target_len = mini_batch
+                x = x.to(device)
+                y = y.to(device)
+
+                opt.zero_grad()
+                log_prob = self.model(x)
+                log_prob = nn.functional.log_softmax(log_prob, dim=2).transpose(0,1)  #(time, batch, classes) requried shape for CTCLoss
+                loss = loss_fn(log_prob, y, input_len, target_len)
+                loss.backward()
+                opt.step()
+
+                loss_cum += loss.item()
+            
+            mini_batch_loss = loss_cum/count
+            end_time = time.time()
+            exe_time = (end_time-start_time)/60 
+            with open(os.path.join(self.results_dir, "results.txt"), 'a') as f:
+                f.write(f"{epoch}, {exe_time:.2f}, {mini_batch_loss} \n")
+
+            if epoch %10 == 0:
+                checkpoint = {'model_state_dict': self.model.state_dict(), 'opt_state_dict': opt.state_dict(), 'epoch': epoch}
+                torch.save(checkpoint, os.path.join(self.results_dir, f"checkpoint_epochs_{epochs}.pt"))
+                cer, wer = self.test(test_dataset, batch_size=batch_size, shuffle=True, device=device)
+                with open(os.path.join(self.results_dir, "results.txt"), 'a') as f:
+                    f.write(f"Test set results: CER: {cer}, WER: {wer} \n")
+
+        
+
+    def test(self, test_dataset, batch_size=128, shuffle=True, device='cpu'):
+        test_loader = test_dataset.load_data(batch_size=batch_size, shuffle=shuffle)
+        cer_cum = 0
+        wer_cum = 0
+        count = 0
+        self.model.eval()
+        with torch.no_grad():
+            for data in test_loader:
+                count += 1
+                x,y, _, _ = data
+                x = x.to(device)
+                y = y.to(device)
+
+                pred = self.decode(x)
+                target = self.processor.label_to_text(y)
+
+                cer_cum += jiwer.cer(target, pred)
+                wer_cum += jiwer.wer(target, pred)
+        
+        cer = cer_cum/count
+        wer = wer_cum/count
+
+        return cer, wer
+
+
+
+
+
+
+
+
+    def decode(self, x, blank=28):
+        torch.no_grad()
+        x = self.model(x)
+        x = nn.functional.log_softmax(x, dim=2)
+        out = torch.argmax(x, dim=2)
+        #print(out.squeeze())
+        pred = []
+        batch_size = x.shape[0]
+        for n in range(batch_size):
+            indices = []
+            prev_i = -1
+            for i in out[n]:
+                if i ==  prev_i:
+                    continue
+                if i == blank:
+                    prev_i = -1
+                    continue
+                prev_i = i
+                indices.append(i.item())
+            text = self.processor.indices_to_text(indices)
+            pred.append(self.processor.c_to_text(text))
+        return pred
