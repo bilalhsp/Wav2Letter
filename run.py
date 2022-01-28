@@ -17,26 +17,28 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 dir = os.getcwd()
 print(dir)
 vocab_path = os.path.join(dir,"ASR","vocab.letters.28")
-data_dir = "c:\\Users\\ahmedb\\projects\\speech_data"           # os.path.join(dir,'ASR', 'data')
-pretrained = os.path.join(data_dir, 'wav2letter_weights', 'checkpoint_epochs_280.pt')
+#data_dir = "c:\\Users\\ahmedb\\projects\\speech_data"           # os.path.join(dir,'ASR', 'data')
+data_dir = "/depot/jgmakin/data/LibriSpeech"
+#pretrained = os.path.join(data_dir, 'wav2letter_weights', 'checkpoint_epochs_280.pt')
 #Hyper parameters...!
-epochs = 1
-batch_size = 2
-learning_rate = 0.01
-
+epochs = 100
+batch_size = 64
+learning_rate = 0.05
+momentum = 0.9
 #Storing results...!
 mini_batch_loss = 0
 loss_cum =0 
 count = 0
 
 #Model and other classes...!
-train_data = Dataset(data_dir, vocab_path, data='training')
-test_data = Dataset(data_dir, vocab_path, data='test')
+train_data = Dataset(data_dir, vocab_path, data='training', device=device)
+test_data = Dataset(data_dir, vocab_path, data='test', device=device)
 
 
 model = SpeechRecognition(vocab_path)
 
-model.train(train_data, test_data)
+model.train(train_data, test_data, epochs=epochs, batch_size = batch_size,
+ learning_rate = learning_rate, momentum = momentum, device=device)
 # model = Wav2Letter2(vocab_path)
 # model = model.to(device)
 # processor = Text_Processor(vocab_path)

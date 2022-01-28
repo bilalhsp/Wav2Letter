@@ -1,0 +1,131 @@
+/home/ahmedb/.local/lib/python3.8/site-packages/torchaudio/backend/utils.py:53: UserWarning: "sox" backend is being deprecated. The default backend will be changed to "sox_io" backend in 0.8.0 and "sox" backend will be removed in 0.9.0. Please migrate to "sox_io" backend. Please refer to https://github.com/pytorch/audio/issues/903 for the detail.
+  warnings.warn(
+/apps/gilbreth/ml/ml-toolkit/conda-2020.11-py38/gpu/install/pytorch-1.7.1/lib/python3.8/site-packages/torch/functional.py:515: UserWarning: stft will require the return_complex parameter be explicitly  specified in a future PyTorch release. Use return_complex=False  to preserve the current behavior or return_complex=True to return  a complex output. (Triggered internally at  /opt/conda/conda-bld/pytorch_1607370172916/work/aten/src/ATen/native/SpectralOps.cpp:653.)
+  return _VF.stft(input, n_fft, hop_length, win_length, window,  # type: ignore
+/apps/gilbreth/ml/ml-toolkit/conda-2020.11-py38/gpu/install/pytorch-1.7.1/lib/python3.8/site-packages/torch/functional.py:515: UserWarning: The function torch.rfft is deprecated and will be removed in a future PyTorch release. Use the new torch.fft module functions, instead, by importing torch.fft and calling torch.fft.fft or torch.fft.rfft. (Triggered internally at  /opt/conda/conda-bld/pytorch_1607370172916/work/aten/src/ATen/native/SpectralOps.cpp:590.)
+  return _VF.stft(input, n_fft, hop_length, win_length, window,  # type: ignore
+Available device: cuda
+/home/ahmedb/projects/Wav2Letter
+Before model and dataloader defination.......memory allocated...!
+0
+0
+After model and loader definations only.....!
+0
+0
+After loading model to GPU
+20643840
+37748736
+After dataloader.load_data...!
+20643840
+37748736
+Training starts...!
+Epoch [1]/[1]:
+Mini-batch 1 starts......!
+After data.to(device)......!
+56468480
+73400320
+Time to load data: 0.009608268737792969
+after model(x)........!
+5923586048
+Y_hat device is : 
+cuda:0
+After forward pass, just before loss computation....!
+5946184704
+6259998720
+Loss output device is: 
+cuda:0
+After forward pass...............!
+6475014656
+6788481024
+Forward and backward pass time: 1.5833468437194824
+Mini-batch 2 starts......!
+After data.to(device)......!
+121265152
+8917090304
+Time to load data: 0.009399652481079102
+after model(x)........!
+6086493184
+Y_hat device is : 
+cuda:0
+After forward pass, just before loss computation....!
+6109581824
+9714008064
+Loss output device is: 
+cuda:0
+After forward pass...............!
+6612282368
+9714008064
+Forward and backward pass time: 1.3833372592926025
+Mini-batch 3 starts......!
+After data.to(device)......!
+120442368
+10764681216
+Time to load data: 0.009183406829833984
+after model(x)........!
+5913509888
+Y_hat device is : 
+cuda:0
+After forward pass, just before loss computation....!
+5935900672
+10764681216
+Loss output device is: 
+cuda:0
+After forward pass...............!
+6343065600
+10764681216
+Forward and backward pass time: 1.2438218593597412
+Mini-batch 4 starts......!
+After data.to(device)......!
+121063424
+10764681216
+Time to load data: 0.009120464324951172
+after model(x)........!
+6031611392
+Y_hat device is : 
+cuda:0
+After forward pass, just before loss computation....!
+6054462464
+10764681216
+Loss output device is: 
+cuda:0
+After forward pass...............!
+6570917376
+10764681216
+Forward and backward pass time: 1.3677854537963867
+Mini-batch 5 starts......!
+After data.to(device)......!
+120200192
+10764681216
+Time to load data: 0.008937597274780273
+after model(x)........!
+5910748672
+Y_hat device is : 
+cuda:0
+After forward pass, just before loss computation....!
+5933124608
+10764681216
+Loss output device is: 
+cuda:0
+After forward pass...............!
+6387889664
+10764681216
+Forward and backward pass time: 1.2442302703857422
+Mini-batch 6 starts......!
+After data.to(device)......!
+121025024
+10764681216
+Time to load data: 0.009301185607910156
+after model(x)........!
+6033979904
+Y_hat device is : 
+cuda:0
+After forward pass, just before loss computation....!
+6056845824
+10764681216
+Loss output device is: 
+cuda:0
+After forward pass...............!
+6501048832
+10764681216
+Forward and backward pass time: 1.3684682846069336
+Loss/mini-batch: 8.03---Execution time/epoch: 0.33 min.

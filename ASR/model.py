@@ -3,8 +3,10 @@ import torch
 import torch.nn as nn
 import os
 import time
-import jiwer
+#import jiwer
 import fnmatch
+from auditory_ctx.utils.cer import cer
+from auditory_ctx.utils.wer import wer
 
 from ASR.utils import Text_Processor
 
@@ -127,6 +129,7 @@ class SpeechRecognition(nn.Module):
             load_weights=False, device='cpu'):
         self.model = self.model.to(device)
         
+        #opt = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
         opt = torch.optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
         loss_fn = nn.CTCLoss(blank=28)
 
@@ -183,35 +186,37 @@ class SpeechRecognition(nn.Module):
             if epoch %10 == 0:
                 checkpoint = {'model_state_dict': self.model.state_dict(), 'opt_state_dict': opt.state_dict(), 'epoch': epoch}
                 torch.save(checkpoint, os.path.join(self.results_dir, f"checkpoint_epochs_{epochs}.pt"))
-                cer, wer = self.test(test_dataset, batch_size=batch_size, shuffle=True, device=device)
+                cerr, werr = self.test(test_dataset, batch_size=batch_size, shuffle=True, device=device)
+                #cerr, werr = 0,0
                 with open(os.path.join(self.results_dir, "results.txt"), 'a') as f:
-                    f.write(f"Test set results: CER: {cer}, WER: {wer} \n")
+                    f.write(f"Test set results: CER: {cerr}, WER: {werr} \n")
 
         
 
     def test(self, test_dataset, batch_size=128, shuffle=True, device='cpu'):
         test_loader = test_dataset.load_data(batch_size=batch_size, shuffle=shuffle)
-        cer_cum = 0
-        wer_cum = 0
-        count = 0
+        cer_cum = []
+        wer_cum = []
+        #count = 0
         self.model.eval()
         with torch.no_grad():
             for data in test_loader:
-                count += 1
+                #count += 1
                 x,y, _, _ = data
                 x = x.to(device)
                 y = y.to(device)
 
                 pred = self.decode(x)
                 target = self.processor.label_to_text(y)
+                
+                for k in range(len(pred)):
+                    cer_cum.append(cer(target[k], pred[k]))
+                    wer_cum.append(wer(target[k], pred[k]))
 
-                cer_cum += jiwer.cer(target, pred)
-                wer_cum += jiwer.wer(target, pred)
-        
-        cer = cer_cum/count
-        wer = wer_cum/count
+        cerr = sum(cer_cum)/len(cer_cum)
+        werr = sum(wer_cum)/len(wer_cum)
 
-        return cer, wer
+        return cerr, werr
 
 
 

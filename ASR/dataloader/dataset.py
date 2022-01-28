@@ -7,15 +7,19 @@ from torch.utils.data import DataLoader
 from ASR.utils import Text_Processor
 
 class Dataset():
-    def __init__(self, data_dir, vocab_path, data='training', download='False', sample_rate=16000,n_mels=40,win_length=400, hop_length=160):
+    def __init__(self, data_dir, vocab_path, data='training', download='False', sample_rate=16000,n_mels=40,win_length=400, hop_length=160, device='cpu'):
         # sample_rate, n_mels, win_length and hop_length are matched with 'wav2letter2'
         if data == 'training':
             self.dataset = torchaudio.datasets.LIBRISPEECH(data_dir, url='train-clean-100', download=download)
+            self.transform = nn.Sequential(torchaudio.transforms.MelSpectrogram(sample_rate=sample_rate, n_mels=n_mels, win_length=win_length,hop_length=hop_length),
+                            torchaudio.transforms.FrequencyMasking(freq_mask_param=30),
+                            torchaudio.transforms.TimeMasking(time_mask_param=100)).to(device)
         else:
             self.dataset = torchaudio.datasets.LIBRISPEECH(data_dir, url='test-clean', download=download)
+            self.transform = torchaudio.transforms.MelSpectrogram(sample_rate=sample_rate, n_mels=n_mels, win_length=win_length, hop_length=hop_length).to(device)
         self.text_processor = Text_Processor(vocab_path=vocab_path)
-        self.transform = torchaudio.transforms.MelSpectrogram(sample_rate=sample_rate,n_mels=n_mels,win_length=win_length, hop_length=hop_length)
-
+        #self.transform = torchaudio.transforms.MelSpectrogram(sample_rate=sample_rate,n_mels=n_mels,win_length=win_length, hop_length=hop_length)
+        self.device = device
     def load_data(self, batch_size, shuffle=False):
         
         loader = DataLoader(self.dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=lambda x: self.pad_sequence(x))
@@ -31,7 +35,8 @@ class Dataset():
         target_lengths_seq = []
         for (wav, fs, trans, *_) in data:
             # 'wav': (1, time)
-            # 'trans': string 
+            # 'trans': string
+            wav = wav.to(self.device) 
             spect = torch.transpose(self.transform(wav).squeeze(), 0,1)  #(time, n_mels)
             spectrograms.append(spect) # list of '(time, n_mels)'
             label = torch.Tensor(self.text_processor.text_to_indices(trans)) #(time)
