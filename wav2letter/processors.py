@@ -1,8 +1,11 @@
 import os
 
 class Text_Processor():
-    def __init__(self, config):
-        self.vocab_path = os.path.join(config["config_path"],config["vocab_file"])
+    def __init__(self):
+
+        # Loading the config file..!
+        self.vocab_path = os.path.join(os.path.dirname(__file__),'conf','vocab.letters.28')
+
         with open(self.vocab_path, 'r') as f:
             chars = f.read().split('\n')
         self.char_to_idx = {c:i for i, c in enumerate(chars)}

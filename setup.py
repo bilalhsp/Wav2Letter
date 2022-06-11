@@ -14,6 +14,9 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/bilalhsp/Wav2Letter/",
     packages=find_packages(),
+    package_data={
+        'wav2letter.conf': ["*.yaml", "vocab.letters.28"]
+    }
 
     install_requires=[
         'numpy', 'scipy','torchaudio' , 'pysoundfile', 'pandas', 'pytorch-lightning',

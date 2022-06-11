@@ -4,10 +4,11 @@ import torch.nn as nn
 import torchaudio
 import soundfile
 import pandas as pd
+import yaml
 # import librosa
 from torch.utils.data import DataLoader
 # import dill
-from wav2letter.ASR.utils import Text_Processor
+from wav2letter.processors import Text_Processor
 import pytorch_lightning as pl
 
 class Dataset():
@@ -115,9 +116,13 @@ class LibriSpeechDataset():
         return torch.tensor(audio.transpose(), dtype=torch.float32), fs, trans
 
 class LSDataModule(pl.LightningDataModule):
-    def __init__(self, manifest):
+    def __init__(self):
         super(LSDataModule, self).__init__()
-      
+        # Loading the config file..!
+        manifest_file = os.path.join(os.path.dirname(__file__),'conf','lightning.yaml')
+        with open(manifest_file, 'r') as f:
+            manifest = yaml.load(f, Loader=yaml.FullLoader)
+
         self.sample_rate = manifest["sample_rate"]
         self.hop_length = manifest["window_stride"]
         self.win_length = manifest["window_size"]
@@ -133,7 +138,7 @@ class LSDataModule(pl.LightningDataModule):
         # self.test_url = manifest["test_url"]
         self.batch_size=manifest["batch_size"]
         # sample_rate, n_mels, win_length and hop_length are matched with 'wav2letter2'
-        self.text_processor = Text_Processor(manifest)
+        self.text_processor = Text_Processor()
         self.transform = torchaudio.transforms.Spectrogram(n_fft=self.n_fft, 
         win_length=self.win_length, hop_length=self.hop_length,
           window_fn=torch.hamming_window, power=1)#.to(device)

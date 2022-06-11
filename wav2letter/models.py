@@ -5,12 +5,13 @@ import torchaudio
 import pytorch_lightning as pl
 import os
 import time
+import yaml
 #import jiwer
 import fnmatch
 from statistics import mean
 from wav2letter.utils.cer import cer
 from wav2letter.utils.wer import wer
-from wav2letter.ASR.utils import Text_Processor
+from wav2letter.processors import Text_Processor
 
 
 class conv_block(nn.Module):
@@ -366,8 +367,13 @@ class SpeechRecognition(nn.Module):
 
 
 class LitWav2Letter(pl.LightningModule):
-    def __init__(self, manifest) -> None:
+    def __init__(self) -> None:
         super(LitWav2Letter, self).__init__()
+        # Loading the config file..!
+        manifest_file = os.path.join(os.path.dirname(__file__),'conf','lightning.yaml')
+        with open(manifest_file, 'r') as f:
+            manifest = yaml.load(f, Loader=yaml.FullLoader)
+
         self.model_name = "wav2letter"
         self.manifest = manifest
         self.results_dir = manifest["results_dir"]
@@ -378,7 +384,7 @@ class LitWav2Letter(pl.LightningModule):
         self.lr = manifest["learning_rate"]
         
        #self.model = Wav2Letter2(self.channels)
-        self.processor = Text_Processor(manifest)
+        self.processor = Text_Processor()
         self.loss_fn = nn.CTCLoss(blank=28).to(self.device)
         self.transform = torchaudio.transforms.Spectrogram(n_fft=self.n_fft, 
             win_length=self.win_length, hop_length=self.hop_length,

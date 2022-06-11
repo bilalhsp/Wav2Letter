@@ -4,6 +4,7 @@ main/
 # output files
 *.out
 *.sbatch
+run_lightning.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
