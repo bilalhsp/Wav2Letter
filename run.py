@@ -1,3 +1,4 @@
+
 import os
 from typing import Text
 import torch
@@ -5,40 +6,101 @@ import torch.nn as nn
 import torchaudio
 from torch.utils.data import DataLoader
 import time
-import datasets
+# import datasets
 import fnmatch
+import yaml
 
 from ASR.dataloader.dataset import Dataset
 from ASR.model import SpeechRecognition, Wav2Letter2
 from ASR.utils import Text_Processor
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
 dir = os.getcwd()
 print(dir)
-vocab_path = os.path.join(dir,"ASR","vocab.letters.28")
-#data_dir = "c:\\Users\\ahmedb\\projects\\speech_data"           # os.path.join(dir,'ASR', 'data')
-data_dir = "/depot/jgmakin/data/LibriSpeech"
-#pretrained = os.path.join(data_dir, 'wav2letter_weights', 'checkpoint_epochs_280.pt')
-#Hyper parameters...!
-epochs = 100
-batch_size = 64
-learning_rate = 0.05
-momentum = 0.9
-#Storing results...!
-mini_batch_loss = 0
-loss_cum =0 
-count = 0
+
+# Loading the config. file...!
+# conf_file = 'puzzlelib_model.yaml'
+#conf_file = 'pcen_puzzlelib.yaml'
+#conf_file = 'exact_puzzlelib.yaml'
+
+conf_file = 'data360.yaml'
+# conf_file = 'data360_long.yaml'
+
+manifest_file = os.path.join(dir,"conf",conf_file)
+with open(manifest_file, 'r') as f:
+    manifest = yaml.load(f, Loader=yaml.FullLoader)
+
+model_param = manifest['model_param']
+hyper_param = manifest['hyper_param']
+
 
 #Model and other classes...!
-train_data = Dataset(data_dir, vocab_path, data='training', device=device)
-test_data = Dataset(data_dir, vocab_path, data='test', device=device)
+train_data = Dataset(model_param, device=device)
+#test_data = Dataset(model_param, device=device, test=True)
+
+# model = SpeechRecognition(model_param)
+
+# model.train(train_data, test_data, hyper_param, device=device)
 
 
-model = SpeechRecognition(vocab_path)
 
-model.train(train_data, test_data, epochs=epochs, batch_size = batch_size,
- learning_rate = learning_rate, momentum = momentum, device=device)
+# vocab_path = os.path.join(dir,model_param["vocab_dir"])
+# #data_dir = "c:\\Users\\ahmedb\\projects\\speech_data"           # os.path.join(dir,'ASR', 'data')
+# #data_dir = "/depot/jgmakin/data/LibriSpeech"
+# #pretrained = os.path.join(data_dir, 'wav2letter_weights', 'checkpoint_epochs_280.pt')
+# #Hyper parameters...!
+
+
+
+
+# epochs = 500
+# batch_size = 32
+# learning_rate = 0.001
+# momentum = 0.9
+
+# #model paramteres for mel_spectrogram loader
+# n_mel = 40
+# #Model and other classes...!
+# #train_data = Dataset(data_dir, vocab_path, data='training', n_mels = n_mel, device=device)
+# #test_data = Dataset(data_dir, vocab_path, data='test', n_mels=n_mel, device=device)
+
+# # paths and setup
+# #results_dir = '/scratch/gilbreth/ahmedb/wav2letter/data360_adam_saved_results'
+# data_dir = model_param['data_dir']
+# results_dir = model_param['results_dir']
+# load_weights = manifest['load_weights']
+
+# #model paramteres used in 'puzzlelib' model
+# batch_size=8
+# learning_rate = 1e-5
+# window_size = 400     # 0.02 s long window = sample_frequency * 0.02 =320
+# window_stride = 160   #0.01 s lond window stride = sample_freq * 0.01 = 160
+# window = torch.hamming_window
+# channels = 201
+
+
+
+# #Storing results...!
+# mini_batch_loss = 0
+# loss_cum =0 
+# count = 0
+
+
+
+# """
+
+# End of normal code, rest is practice....!
+"""
+train_loader = train_data.load_data(batch_size=batch_size)
+sample = next(iter(train_loader))
+x,*y = sample
+print("printting the dimensions of data")
+print(x.shape)
+#"""
+
+
+
+
 # model = Wav2Letter2(vocab_path)
 # model = model.to(device)
 # processor = Text_Processor(vocab_path)

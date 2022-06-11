@@ -1,1 +1,203 @@
-slurmstepd: error: *** JOB 363444 ON gilbreth-d006 CANCELLED AT 2022-01-28T11:44:25 DUE TO TIME LIMIT ***
+gilbreth-b007.rcac.purdue.edu
+0
+Global seed set to 1
+Multiprocessing is handled by SLURM.
+/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/trainer/connectors/callback_connector.py:96: LightningDeprecationWarning: Setting `Trainer(progress_bar_refresh_rate=200)` is deprecated in v1.5 and will be removed in v1.7. Please pass `pytorch_lightning.callbacks.progress.TQDMProgressBar` with `refresh_rate` directly to the Trainer's `callbacks` argument instead. Or, to disable the progress bar pass `enable_progress_bar = False` to the Trainer.
+  rank_zero_deprecation(
+GPU available: True, used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:608: UserWarning: Checkpoint directory /scratch/gilbreth/ahmedb/wav2letter/lightning exists and is not empty.
+  rank_zero_warn(f"Checkpoint directory {dirpath} exists and is not empty.")
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+   | Name      | Type        | Params
+-------------------------------------------
+0  | loss_fn   | CTCLoss     | 0     
+1  | transform | Spectrogram | 0     
+2  | conv1     | conv_block  | 454 K 
+3  | conv2     | conv_block  | 721 K 
+4  | conv3     | conv_block  | 721 K 
+5  | conv4     | conv_block  | 721 K 
+6  | conv5     | conv_block  | 1.3 M 
+7  | conv6     | conv_block  | 1.9 M 
+8  | conv7     | conv_block  | 1.9 M 
+9  | conv8     | conv_block  | 3.3 M 
+10 | conv9     | conv_block  | 4.5 M 
+11 | conv10    | conv_block  | 4.5 M 
+12 | conv11    | conv_block  | 6.9 M 
+13 | conv12    | conv_block  | 8.6 M 
+14 | conv13    | conv_block  | 8.6 M 
+15 | conv14    | conv_block  | 12.3 M
+16 | conv15    | conv_block  | 14.7 M
+17 | conv16    | conv_block  | 14.7 M
+18 | conv17    | conv_block  | 20.0 M
+19 | conv18    | conv_block  | 920 K 
+20 | conv19    | conv_block  | 29.8 K
+-------------------------------------------
+106 M     Trainable params
+0         Non-trainable params
+106 M     Total params
+427.117   Total estimated model params size (MB)
+SLURM auto-requeueing enabled. Setting signal handlers.
+0
+1
+Tesla P100-PCIE-16GB
+Config. file loaded..!
+Batch size: 4
+Creating dataset...!
+Dataset ready...!
+Training starts now...!
+/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/torch/utils/data/dataloader.py:478: UserWarning: This DataLoader will create 2 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:240: PossibleUserWarning: The dataloader, val_dataloader 0, does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` (try 24 which is the number of cpus on this machine) in the `DataLoader` init to improve performance.
+  rank_zero_warn(
+/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:240: PossibleUserWarning: The dataloader, train_dataloader, does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` (try 24 which is the number of cpus on this machine) in the `DataLoader` init to improve performance.
+  rank_zero_warn(
+Traceback (most recent call last):
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 724, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 812, in _fit_impl
+    results = self._run(model, ckpt_path=self.ckpt_path)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1237, in _run
+    results = self._run_stage()
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1324, in _run_stage
+    return self._run_train()
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1354, in _run_train
+    self.fit_loop.run()
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/loops/base.py", line 204, in run
+    self.advance(*args, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/loops/fit_loop.py", line 269, in advance
+    self._outputs = self.epoch_loop.run(self._data_fetcher)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/loops/base.py", line 204, in run
+    self.advance(*args, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/loops/epoch/training_epoch_loop.py", line 208, in advance
+    batch_output = self.batch_loop.run(batch, batch_idx)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/loops/base.py", line 204, in run
+    self.advance(*args, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/loops/batch/training_batch_loop.py", line 88, in advance
+    outputs = self.optimizer_loop.run(split_batch, optimizers, batch_idx)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/loops/base.py", line 204, in run
+    self.advance(*args, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 203, in advance
+    result = self._run_optimization(
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 256, in _run_optimization
+    self._optimizer_step(optimizer, opt_idx, batch_idx, closure)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 369, in _optimizer_step
+    self.trainer._call_lightning_module_hook(
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1596, in _call_lightning_module_hook
+    output = fn(*args, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/core/lightning.py", line 1625, in optimizer_step
+    optimizer.step(closure=optimizer_closure)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/core/optimizer.py", line 168, in step
+    step_output = self._strategy.optimizer_step(self._optimizer, self._optimizer_idx, closure, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/strategies/strategy.py", line 193, in optimizer_step
+    return self.precision_plugin.optimizer_step(model, optimizer, opt_idx, closure, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/plugins/precision/precision_plugin.py", line 155, in optimizer_step
+    return optimizer.step(closure=closure, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/torch/optim/optimizer.py", line 88, in wrapper
+    return func(*args, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/torch/autograd/grad_mode.py", line 28, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/torch/optim/adam.py", line 92, in step
+    loss = closure()
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/plugins/precision/precision_plugin.py", line 140, in _wrap_closure
+    closure_result = closure()
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 148, in __call__
+    self._result = self.closure(*args, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 143, in closure
+    self._backward_fn(step_output.closure_loss)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 311, in backward_fn
+    self.trainer._call_strategy_hook("backward", loss, optimizer, opt_idx)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1766, in _call_strategy_hook
+    output = fn(*args, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/strategies/strategy.py", line 168, in backward
+    self.precision_plugin.backward(self.lightning_module, closure_loss, *args, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/plugins/precision/precision_plugin.py", line 80, in backward
+    model.backward(closure_loss, optimizer, *args, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/core/lightning.py", line 1370, in backward
+    loss.backward(*args, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/torch/_tensor.py", line 307, in backward
+    torch.autograd.backward(self, gradient, retain_graph, create_graph, inputs=inputs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/torch/autograd/__init__.py", line 154, in backward
+    Variable._execution_engine.run_backward(
+RuntimeError: cuDNN error: CUDNN_STATUS_INTERNAL_ERROR
+You can try to repro this exception using the following code snippet. If that doesn't trigger the error, please include your original repro script when reporting this issue.
+
+import torch
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.benchmark = True
+torch.backends.cudnn.deterministic = False
+torch.backends.cudnn.allow_tf32 = True
+data = torch.randn([4, 1024, 1, 826], dtype=torch.float, device='cuda', requires_grad=True)
+net = torch.nn.Conv2d(1024, 29, kernel_size=[1, 1], padding=[0, 0], stride=[1, 1], dilation=[1, 1], groups=1)
+net = net.cuda().float()
+out = net(data)
+out.backward(torch.randn_like(out))
+torch.cuda.synchronize()
+
+ConvolutionParams 
+    data_type = CUDNN_DATA_FLOAT
+    padding = [0, 0, 0]
+    stride = [1, 1, 0]
+    dilation = [1, 1, 0]
+    groups = 1
+    deterministic = false
+    allow_tf32 = true
+input: TensorDescriptor 0x2b37141b95a0
+    type = CUDNN_DATA_FLOAT
+    nbDims = 4
+    dimA = 4, 1024, 1, 826, 
+    strideA = 845824, 826, 826, 1, 
+output: TensorDescriptor 0x2b371419e320
+    type = CUDNN_DATA_FLOAT
+    nbDims = 4
+    dimA = 4, 29, 1, 826, 
+    strideA = 23954, 826, 826, 1, 
+weight: FilterDescriptor 0x2b37141a0e00
+    type = CUDNN_DATA_FLOAT
+    tensor_format = CUDNN_TENSOR_NCHW
+    nbDims = 4
+    dimA = 29, 1024, 1, 1, 
+Pointer addresses: 
+    input: 0x2b355e70ae00
+    output: 0x2b3708f2c200
+    weight: 0x2b34ed632c00
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "run_lightning.py", line 88, in <module>
+    main(model_param)
+  File "run_lightning.py", line 66, in main
+    trainer.fit(mod, dm)#, ckpt_path="/scratch/gilbreth/ahmedb/wav2letter/lightning/Wav2Letter-epoch=074-val_loss=0.56.ckpt",)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 771, in fit
+    self._call_and_handle_interrupt(
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 739, in _call_and_handle_interrupt
+    self._teardown()
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1301, in _teardown
+    self.strategy.teardown()
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/strategies/single_device.py", line 93, in teardown
+    super().teardown()
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/strategies/strategy.py", line 444, in teardown
+    optimizers_to_device(self.optimizers, torch.device("cpu"))
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/utilities/optimizer.py", line 27, in optimizers_to_device
+    optimizer_to_device(opt, device)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/utilities/optimizer.py", line 33, in optimizer_to_device
+    optimizer.state[p] = apply_to_collection(v, torch.Tensor, move_data_to_device, device)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/utilities/apply_func.py", line 107, in apply_to_collection
+    v = apply_to_collection(
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/utilities/apply_func.py", line 99, in apply_to_collection
+    return function(data, *args, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/utilities/apply_func.py", line 354, in move_data_to_device
+    return apply_to_collection(batch, dtype=dtype, function=batch_to)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/utilities/apply_func.py", line 99, in apply_to_collection
+    return function(data, *args, **kwargs)
+  File "/home/ahmedb/.conda/envs/cent7/2020.11-py38/wav2letter_lightning/lib/python3.8/site-packages/pytorch_lightning/utilities/apply_func.py", line 347, in batch_to
+    data_output = data.to(device, **kwargs)
+RuntimeError: CUDA error: an illegal memory access was encountered
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
+Sanity Checking: 0it [00:00, ?it/s]Sanity Checking DataLoader 0:   0%|          | 0/2 [00:00<?, ?it/s]Sanity Checking DataLoader 0: 100%|██████████| 2/2 [00:05<00:00,  2.94s/it]                                                                           Training: 0it [00:00, ?it/s]Epoch 0:   0%|          | 0/33815 [00:00<?, ?it/s]srun: error: gilbreth-b007: task 0: Exited with exit code 1

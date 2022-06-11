@@ -1,0 +1,22 @@
+model_param:
+  results_dir: /scratch/gilbreth/ahmedb/wav2letter/exact_puzzlelib
+  data_dir: /depot/jgmakin/data/LibriSpeech
+  vocab_dir: ./ASR/vocab.letters.28
+  training_url: train-clean-100
+  test_url: test-clean
+  download: False
+  sample_rate: 16000
+  window_size: 320        #I used 400 for training...!
+  window_stride: 160
+  window: torch.hamming_window
+  channels: 161         # window_size / 2 + 1
+
+hyper_param:
+  epochs: 500
+  batch_size: 8
+  learning_rate: 1.0e-5
+  momentum: 0.9
+  load_weights: False
+
+
+# torch=1.10.0, torchaudio=0.10.0, datasets=1.15.1, auditory-ctx
