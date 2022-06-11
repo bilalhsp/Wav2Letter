@@ -16,6 +16,6 @@ setup(
     packages=find_packages(),
 
     install_requires=[
-        'numpy', 'scipy','torchaudio' , 'pysoundfile', 'pandas', 'pytorch-lightning',
+        'numpy', 'scipy','torchaudio', 'pysoundfile', 'pandas', 'pytorch-lightning',
     ],
 )
