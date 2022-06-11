@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="wav2letter",
-    version="0.0.1",
+    version="1.0.0",
     author="Bilal Ahmed",
     author_email="ahmedb@purdue.edu",
     description="ASR using purely convolution based network",
@@ -16,7 +16,7 @@ setup(
     packages=find_packages(),
     package_data={
         'wav2letter.conf': ["*.yaml", "vocab.letters.28"]
-    }
+    },
 
     install_requires=[
         'numpy', 'scipy','torchaudio' , 'pysoundfile', 'pandas', 'pytorch-lightning',
