@@ -1,5 +1,6 @@
 # directory 
 Auditory_Cortex/
+main/
 # output files
 *.out
 *.sbatch
