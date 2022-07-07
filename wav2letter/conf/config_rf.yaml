@@ -1,0 +1,27 @@
+results_dir: /depot/jgmakin/data/auditory_cortex/pretrained_weights/w2l_modified/ #/single_gpu
+data_dir: /scratch/gilbreth/ahmedb/data/LibriSpeech #/depot/jgmakin/data/LibriSpeech
+config_path: ./conf         # change this as per your directory structure to point to 'conf' folder
+vocab_file: vocab.letters.28
+training_url: 
+- train-clean-100
+- train-clean-360
+#- train-other-500
+val_url: dev-clean
+test_url: test-clean
+train_manifest: train_manifest.csv 
+val_manifest: val_manifest.csv
+test_manifest: test_manifest.csv
+batch_size: 8
+learning_rate: 1.0e-4
+num_workers: 1
+download: False
+channels: 1         # raw waveforms as input
+sample_rate: 16000
+window_size: 320        #I used 400 for training...!
+window_stride: 160
+# window: torch.hamming_window
+
+
+
+
+# torch=1.10.0, torchaudio=0.10.0, datasets=1.15.1, auditory-ctx

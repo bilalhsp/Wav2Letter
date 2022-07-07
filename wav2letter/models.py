@@ -34,6 +34,363 @@ class conv_block(nn.Module):
         return out
          
 
+class LitWav2Letter(pl.LightningModule):
+    def __init__(self) -> None:
+        super(LitWav2Letter, self).__init__()
+        # Loading the config file..!
+        manifest_file = os.path.join(os.path.dirname(__file__),'conf','lightning.yaml')
+        with open(manifest_file, 'r') as f:
+            manifest = yaml.load(f, Loader=yaml.FullLoader)
+
+        self.model_name = "wav2letter"
+        self.manifest = manifest
+        self.results_dir = manifest["results_dir"]
+        self.channels = manifest["channels"]
+        self.hop_length = manifest["window_stride"]
+        self.win_length = manifest["window_size"]
+        self.n_fft = manifest["window_size"]
+        self.lr = manifest["learning_rate"]
+        
+       #self.model = Wav2Letter2(self.channels)
+        self.processor = Text_Processor()
+        self.loss_fn = nn.CTCLoss(blank=28).to(self.device)
+        self.transform = torchaudio.transforms.Spectrogram(n_fft=self.n_fft, 
+            win_length=self.win_length, hop_length=self.hop_length,
+            window_fn=torch.hamming_window, power=1).to(self.device)
+        #self.softmax = nn.Softmax(dim=2)
+
+        self.conv1 = conv_block(in_channels=self.channels,  out_channels=256, kernel_size=11,  padding=5, stride=2,  dropout=0.2)
+        self.conv2 = conv_block(in_channels=256,  out_channels=256, kernel_size=11,  padding=5, stride=1,  dropout=0.2)
+        self.conv3 = conv_block(in_channels=256,  out_channels=256, kernel_size=11,  padding=5, stride=1,  dropout=0.2)
+        self.conv4 = conv_block(in_channels=256,  out_channels=256, kernel_size=11,  padding=5, stride=1,  dropout=0.2)
+
+        self.conv5 = conv_block(in_channels=256,  out_channels=384, kernel_size=13,  padding=6, stride=1,  dropout=0.2)
+        self.conv6 = conv_block(in_channels=384,  out_channels=384, kernel_size=13,  padding=6, stride=1,  dropout=0.2)
+        self.conv7 = conv_block(in_channels=384,  out_channels=384, kernel_size=13,  padding=6, stride=1,  dropout=0.2)
+
+        self.conv8 = conv_block(in_channels=384,  out_channels=512, kernel_size=17,  padding=8, stride=1,  dropout=0.2)
+        self.conv9 = conv_block(in_channels=512,  out_channels=512, kernel_size=17,  padding=8, stride=1,  dropout=0.2)
+        self.conv10 = conv_block(in_channels=512,  out_channels=512, kernel_size=17,  padding=8, stride=1,  dropout= 0.2)
+ 
+        self.conv11 = conv_block(in_channels=512,  out_channels=640, kernel_size=21,  padding=10, stride=1,  dropout=0.3)
+        self.conv12 = conv_block(in_channels=640,  out_channels=640, kernel_size=21,  padding=10, stride=1,  dropout=0.3)
+        self.conv13 = conv_block(in_channels=640,  out_channels=640, kernel_size=21,  padding=10, stride=1,  dropout=0.3)
+
+        self.conv14 = conv_block(in_channels=640,  out_channels=768, kernel_size=25,  padding=12, stride=1,  dropout=0.3)
+        self.conv15 = conv_block(in_channels=768,  out_channels=768, kernel_size=25,  padding=12, stride=1,  dropout=0.3)
+        self.conv16 = conv_block(in_channels=768,  out_channels=768, kernel_size=25,  padding=12, stride=1,  dropout=0.3)
+
+        self.conv17 = conv_block(in_channels=768, out_channels=896, kernel_size=29,  padding=28, stride=1,  dropout=0.4, dilation=2)
+
+
+        self.conv18 = conv_block(in_channels=896,  out_channels=1024, kernel_size=1,  padding=0, stride=1,  dropout=0.4)
+        self.conv19 = conv_block(in_channels=1024,  out_channels=29, kernel_size=1,  padding=0, stride=1,  dropout=0.0)
+
+
+    def forward(self, x):
+        #conv_block ...!
+
+        #### librosa modification...!####
+        # x = torch.transpose(x,1,2)
+        # print(x.shape)
+        #### librosa modification...!####
+        x = self.transform(x)
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = self.conv4(x)
+        x = self.conv5(x)
+        x = self.conv6(x)
+        x = self.conv7(x)
+        x = self.conv8(x)
+        x = self.conv9(x)
+        x = self.conv10(x)
+        x = self.conv11(x)
+        x = self.conv12(x)
+        x = self.conv13(x)
+        x = self.conv14(x)
+        x = self.conv15(x)
+        x = self.conv16(x)
+        x = self.conv17(x)
+        x = self.conv18(x)
+        out = self.conv19(x)
+        out = torch.transpose(out, 1,2)
+
+        return out
+    
+    def configure_optimizers(self):
+        # learning_rate = 1.0e-4
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+
+        return optimizer
+
+    def training_step(self, train_batch, batch_idx): 
+        
+        x,y, input_len, target_len = train_batch
+        # print("\n Training step in the device: ")
+        # print(self.device)
+        # print(f"batch_size: {x.shape[0]}")
+
+        log_prob = self.forward(x)
+        log_prob = nn.functional.log_softmax(log_prob, dim=2).transpose(0,1)  #(time, batch, classes) requried shape for CTCLoss
+        loss = self.loss_fn(log_prob, y, input_len, target_len)
+
+        # self.log('train_loss', loss, on_step=False, on_epoch=True)
+        ####changes made to the training_step...!
+        logs = {'train_loss': loss}
+        output = {
+                'loss': loss,
+                'log': logs,
+                }
+        return output
+
+    def validation_step(self, val_batch, batch_idx):      
+        x,y, input_len, target_len = val_batch
+        # print(f"batch_size: {x.shape[0]}")
+
+        log_prob = self.forward(x)
+        log_prob = nn.functional.log_softmax(log_prob, dim=2).transpose(0,1)  #(time, batch, classes) requried shape for CTCLoss
+        loss = self.loss_fn(log_prob, y, input_len, target_len)
+        self.log('val_loss', loss, on_step=False, on_epoch=True)
+        pred = self.decode(x)
+        target = self.processor.label_to_text(y)
+        cer_cum = []
+        wer_cum = []
+        for k in range(len(pred)):
+            cer_cum.append(cer(target[k], pred[k]))
+            wer_cum.append(wer(target[k], pred[k]))
+        cerr = sum(cer_cum)/len(cer_cum)
+        werr = sum(wer_cum)/len(wer_cum)
+        # self.log('val_cerr', cerr, on_step=False, on_epoch=True)
+        # self.log('val_werr', werr, on_step=False, on_epoch=True)
+
+        output = {'loss': loss, 'cer':cerr, 'wer': werr}
+        return output
+        # return loss, cerr, werr
+
+    def training_epoch_end(self,outputs):
+        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
+        self.logger.experiment.add_scalar("Loss/Train", avg_loss, self.current_epoch)
+        if self.current_epoch==1:
+            sample_input = torch.rand(32, 10000)
+            self.logger.experiment.add_graph(LitWav2Letter(self.manifest), sample_input)
+        # epoch_dictionary = {'loss': avg_loss}  
+        # return epoch_dictionary
+
+    def validation_epoch_end(self,outputs):
+        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
+        avg_cer = mean([x['cer'] for x in outputs])
+        avg_wer = mean([x['wer'] for x in outputs])
+        self.logger.experiment.add_scalar("Loss/Val", avg_loss, self.current_epoch)
+        self.logger.experiment.add_scalar("CER/Val", avg_cer, self.current_epoch)
+        self.logger.experiment.add_scalar("WER/Val", avg_wer, self.current_epoch)
+        # epoch_dictionary = {'loss': avg_loss}
+        # return epoch_dictionary
+
+
+    def decode(self, x, blank=28):
+        torch.no_grad()
+        x = self.forward(x)
+        x = nn.functional.log_softmax(x, dim=2)
+        out = torch.argmax(x, dim=2)
+        #print(out.squeeze())
+        pred = []
+        batch_size = x.shape[0]
+        for n in range(batch_size):
+            indices = []
+            prev_i = -1
+            for i in out[n]:
+                if i ==  prev_i:
+                    continue
+                if i == blank:
+                    prev_i = -1
+                    continue
+                prev_i = i
+                indices.append(i.item())
+            text = self.processor.indices_to_text(indices)
+            pred.append(self.processor.c_to_text(text))
+        return pred
+
+
+### Modified for receptive fields#######
+
+class Wav2LetterRF(pl.LightningModule):
+    def __init__(self, manifest) -> None:
+        super(Wav2LetterRF, self).__init__()
+        # Loading the config file..!
+        # manifest_file = os.path.join(os.path.dirname(__file__),'conf','config_rf.yaml')
+        # with open(manifest_file, 'r') as f:
+        #     manifest = yaml.load(f, Loader=yaml.FullLoader)
+
+        self.model_name = "wav2letter_modified"
+        self.manifest = manifest
+        self.results_dir = manifest["results_dir"]
+        self.channels = manifest["channels"]
+        # self.hop_length = manifest["window_stride"]
+        # self.win_length = manifest["window_size"]
+        # self.n_fft = manifest["window_size"]
+        self.lr = manifest["learning_rate"]
+        
+       #self.model = Wav2Letter2(self.channels)
+        self.processor = Text_Processor()
+        self.loss_fn = nn.CTCLoss(blank=28).to(self.device)
+        # self.transform = torchaudio.transforms.Spectrogram(n_fft=self.n_fft, 
+        #     win_length=self.win_length, hop_length=self.hop_length,
+        #     window_fn=torch.hamming_window, power=1).to(self.device)
+        #self.softmax = nn.Softmax(dim=2)
+
+        self.conv1 = conv_block(in_channels=self.channels,  out_channels=250, kernel_size=31,  padding=15, stride=20,  dropout=0.2)
+        self.conv2 = conv_block(in_channels=250,  out_channels=250, kernel_size=3,  padding=1, stride=2,  dropout=0.2)
+        self.conv3 = conv_block(in_channels=250,  out_channels=250, kernel_size=3,  padding=1, stride=2,  dropout=0.2)
+        self.conv4 = conv_block(in_channels=250,  out_channels=250, kernel_size=3,  padding=1, stride=2,  dropout=0.2)
+        self.conv5 = conv_block(in_channels=250,  out_channels=250, kernel_size=3,  padding=1, stride=2,  dropout=0.2)
+
+        self.conv6 = conv_block(in_channels=250,  out_channels=250, kernel_size=3,  padding=1, stride=1,  dropout=0.2)
+        self.conv7 = conv_block(in_channels=250,  out_channels=250, kernel_size=3,  padding=1, stride=1,  dropout=0.2)
+        self.conv8 = conv_block(in_channels=250,  out_channels=250, kernel_size=3,  padding=1, stride=1,  dropout=0.2)
+
+        self.conv9 = conv_block(in_channels=250,  out_channels=250, kernel_size=7,  padding=3, stride=1,  dropout=0.2)
+        self.conv10 = conv_block(in_channels=250,  out_channels=250, kernel_size=7,  padding=3, stride=1,  dropout= 0.2)
+        self.conv11 = conv_block(in_channels=250,  out_channels=250, kernel_size=7,  padding=3, stride=1,  dropout=0.3)
+        self.conv12 = conv_block(in_channels=250,  out_channels=250, kernel_size=7,  padding=3, stride=1,  dropout=0.3)
+        self.conv13 = conv_block(in_channels=250,  out_channels=2000, kernel_size=31,  padding=15, stride=1,  dropout=0.3)
+
+        self.conv14 = conv_block(in_channels=2000,  out_channels=2000, kernel_size=1,  padding=0, stride=1,  dropout=0.4)
+        self.conv15 = conv_block(in_channels=2000,  out_channels=29, kernel_size=1,  padding=0, stride=1,  dropout=0.0)
+
+
+    def forward(self, x):
+        #conv_block ...!
+
+        #### librosa modification...!####
+        # x = torch.transpose(x,1,2)
+        # print(x.shape)
+        #### librosa modification...!####
+        # x = self.transform(x)
+        x = torch.unsqueeze(x, dim=1)
+    
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = self.conv4(x)
+        x = self.conv5(x)
+        x = self.conv6(x)
+        x = self.conv7(x)
+        x = self.conv8(x)
+        x = self.conv9(x)
+        x = self.conv10(x)
+        x = self.conv11(x)
+        x = self.conv12(x)
+        x = self.conv13(x)
+        x = self.conv14(x)
+        out = self.conv15(x)
+
+        out = torch.transpose(out, 1,2)
+
+        return out
+    
+    def configure_optimizers(self):
+        # learning_rate = 1.0e-4
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+
+        return optimizer
+
+    def training_step(self, train_batch, batch_idx): 
+        
+        x,y, input_len, target_len = train_batch
+        # print("\n Training step in the device: ")
+        # print(self.device)
+        # print(f"batch_size: {x.shape[0]}")
+
+        log_prob = self.forward(x)
+        log_prob = nn.functional.log_softmax(log_prob, dim=2).transpose(0,1)  #(time, batch, classes) requried shape for CTCLoss
+        loss = self.loss_fn(log_prob, y, input_len, target_len)
+
+        # self.log('train_loss', loss, on_step=False, on_epoch=True)
+        ####changes made to the training_step...!
+        logs = {'train_loss': loss}
+        output = {
+                'loss': loss,
+                'log': logs,
+                }
+        return output
+
+    def validation_step(self, val_batch, batch_idx):      
+        x,y, input_len, target_len = val_batch
+        # print(f"batch_size: {x.shape[0]}")
+
+        log_prob = self.forward(x)
+        log_prob = nn.functional.log_softmax(log_prob, dim=2).transpose(0,1)  #(time, batch, classes) requried shape for CTCLoss
+        loss = self.loss_fn(log_prob, y, input_len, target_len)
+        self.log('val_loss', loss, on_step=False, on_epoch=True)
+        pred = self.decode(x)
+        target = self.processor.label_to_text(y)
+        cer_cum = []
+        wer_cum = []
+        for k in range(len(pred)):
+            cer_cum.append(cer(target[k], pred[k]))
+            wer_cum.append(wer(target[k], pred[k]))
+        cerr = sum(cer_cum)/len(cer_cum)
+        werr = sum(wer_cum)/len(wer_cum)
+        # self.log('val_cerr', cerr, on_step=False, on_epoch=True)
+        # self.log('val_werr', werr, on_step=False, on_epoch=True)
+
+        output = {'loss': loss, 'cer':cerr, 'wer': werr}
+        return output
+        # return loss, cerr, werr
+
+    def training_epoch_end(self,outputs):
+        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
+        self.logger.experiment.add_scalar("Loss/Train", avg_loss, self.current_epoch)
+        # if self.current_epoch==1:
+        #     sample_input = torch.rand(32, 10000)
+        #     self.logger.experiment.add_graph(Wav2LetterRF(), sample_input)
+        # epoch_dictionary = {'loss': avg_loss}  
+        # return epoch_dictionary
+
+    def validation_epoch_end(self,outputs):
+        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
+        avg_cer = mean([x['cer'] for x in outputs])
+        avg_wer = mean([x['wer'] for x in outputs])
+        self.logger.experiment.add_scalar("Loss/Val", avg_loss, self.current_epoch)
+        self.logger.experiment.add_scalar("CER/Val", avg_cer, self.current_epoch)
+        self.logger.experiment.add_scalar("WER/Val", avg_wer, self.current_epoch)
+        # epoch_dictionary = {'loss': avg_loss}
+        # return epoch_dictionary
+
+
+    def decode(self, x, blank=28):
+        torch.no_grad()
+        x = self.forward(x)
+        x = nn.functional.log_softmax(x, dim=2)
+        out = torch.argmax(x, dim=2)
+        #print(out.squeeze())
+        pred = []
+        batch_size = x.shape[0]
+        for n in range(batch_size):
+            indices = []
+            prev_i = -1
+            for i in out[n]:
+                if i ==  prev_i:
+                    continue
+                if i == blank:
+                    prev_i = -1
+                    continue
+                prev_i = i
+                indices.append(i.item())
+            text = self.processor.indices_to_text(indices)
+            pred.append(self.processor.c_to_text(text))
+        return pred
+
+
+
+
+
+
+
+
+
+
 class Gated_Conv(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, padding, stride=1)->None:
         super(Gated_Conv,self).__init__()
@@ -366,181 +723,5 @@ class SpeechRecognition(nn.Module):
 
 
 
-class LitWav2Letter(pl.LightningModule):
-    def __init__(self) -> None:
-        super(LitWav2Letter, self).__init__()
-        # Loading the config file..!
-        manifest_file = os.path.join(os.path.dirname(__file__),'conf','lightning.yaml')
-        with open(manifest_file, 'r') as f:
-            manifest = yaml.load(f, Loader=yaml.FullLoader)
-
-        self.model_name = "wav2letter"
-        self.manifest = manifest
-        self.results_dir = manifest["results_dir"]
-        self.channels = manifest["channels"]
-        self.hop_length = manifest["window_stride"]
-        self.win_length = manifest["window_size"]
-        self.n_fft = manifest["window_size"]
-        self.lr = manifest["learning_rate"]
-        
-       #self.model = Wav2Letter2(self.channels)
-        self.processor = Text_Processor()
-        self.loss_fn = nn.CTCLoss(blank=28).to(self.device)
-        self.transform = torchaudio.transforms.Spectrogram(n_fft=self.n_fft, 
-            win_length=self.win_length, hop_length=self.hop_length,
-            window_fn=torch.hamming_window, power=1).to(self.device)
-        #self.softmax = nn.Softmax(dim=2)
-
-        self.conv1 = conv_block(in_channels=self.channels,  out_channels=256, kernel_size=11,  padding=5, stride=2,  dropout=0.2)
-        self.conv2 = conv_block(in_channels=256,  out_channels=256, kernel_size=11,  padding=5, stride=1,  dropout=0.2)
-        self.conv3 = conv_block(in_channels=256,  out_channels=256, kernel_size=11,  padding=5, stride=1,  dropout=0.2)
-        self.conv4 = conv_block(in_channels=256,  out_channels=256, kernel_size=11,  padding=5, stride=1,  dropout=0.2)
-
-        self.conv5 = conv_block(in_channels=256,  out_channels=384, kernel_size=13,  padding=6, stride=1,  dropout=0.2)
-        self.conv6 = conv_block(in_channels=384,  out_channels=384, kernel_size=13,  padding=6, stride=1,  dropout=0.2)
-        self.conv7 = conv_block(in_channels=384,  out_channels=384, kernel_size=13,  padding=6, stride=1,  dropout=0.2)
-
-        self.conv8 = conv_block(in_channels=384,  out_channels=512, kernel_size=17,  padding=8, stride=1,  dropout=0.2)
-        self.conv9 = conv_block(in_channels=512,  out_channels=512, kernel_size=17,  padding=8, stride=1,  dropout=0.2)
-        self.conv10 = conv_block(in_channels=512,  out_channels=512, kernel_size=17,  padding=8, stride=1,  dropout= 0.2)
- 
-        self.conv11 = conv_block(in_channels=512,  out_channels=640, kernel_size=21,  padding=10, stride=1,  dropout=0.3)
-        self.conv12 = conv_block(in_channels=640,  out_channels=640, kernel_size=21,  padding=10, stride=1,  dropout=0.3)
-        self.conv13 = conv_block(in_channels=640,  out_channels=640, kernel_size=21,  padding=10, stride=1,  dropout=0.3)
-
-        self.conv14 = conv_block(in_channels=640,  out_channels=768, kernel_size=25,  padding=12, stride=1,  dropout=0.3)
-        self.conv15 = conv_block(in_channels=768,  out_channels=768, kernel_size=25,  padding=12, stride=1,  dropout=0.3)
-        self.conv16 = conv_block(in_channels=768,  out_channels=768, kernel_size=25,  padding=12, stride=1,  dropout=0.3)
-
-        self.conv17 = conv_block(in_channels=768, out_channels=896, kernel_size=29,  padding=28, stride=1,  dropout=0.4, dilation=2)
-
-
-        self.conv18 = conv_block(in_channels=896,  out_channels=1024, kernel_size=1,  padding=0, stride=1,  dropout=0.4)
-        self.conv19 = conv_block(in_channels=1024,  out_channels=29, kernel_size=1,  padding=0, stride=1,  dropout=0.0)
-
-
-    def forward(self, x):
-        #conv_block ...!
-
-        #### librosa modification...!####
-        # x = torch.transpose(x,1,2)
-        # print(x.shape)
-        #### librosa modification...!####
-        x = self.transform(x)
-        x = self.conv1(x)
-        x = self.conv2(x)
-        x = self.conv3(x)
-        x = self.conv4(x)
-        x = self.conv5(x)
-        x = self.conv6(x)
-        x = self.conv7(x)
-        x = self.conv8(x)
-        x = self.conv9(x)
-        x = self.conv10(x)
-        x = self.conv11(x)
-        x = self.conv12(x)
-        x = self.conv13(x)
-        x = self.conv14(x)
-        x = self.conv15(x)
-        x = self.conv16(x)
-        x = self.conv17(x)
-        x = self.conv18(x)
-        out = self.conv19(x)
-        out = torch.transpose(out, 1,2)
-
-        return out
-    
-    def configure_optimizers(self):
-        # learning_rate = 1.0e-4
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-
-        return optimizer
-
-    def training_step(self, train_batch, batch_idx): 
-        
-        x,y, input_len, target_len = train_batch
-        # print("\n Training step in the device: ")
-        # print(self.device)
-        # print(f"batch_size: {x.shape[0]}")
-
-        log_prob = self.forward(x)
-        log_prob = nn.functional.log_softmax(log_prob, dim=2).transpose(0,1)  #(time, batch, classes) requried shape for CTCLoss
-        loss = self.loss_fn(log_prob, y, input_len, target_len)
-
-        # self.log('train_loss', loss, on_step=False, on_epoch=True)
-        ####changes made to the training_step...!
-        logs = {'train_loss': loss}
-        output = {
-                'loss': loss,
-                'log': logs,
-                }
-        return output
-
-    def validation_step(self, val_batch, batch_idx):      
-        x,y, input_len, target_len = val_batch
-        # print(f"batch_size: {x.shape[0]}")
-
-        log_prob = self.forward(x)
-        log_prob = nn.functional.log_softmax(log_prob, dim=2).transpose(0,1)  #(time, batch, classes) requried shape for CTCLoss
-        loss = self.loss_fn(log_prob, y, input_len, target_len)
-        self.log('val_loss', loss, on_step=False, on_epoch=True)
-        pred = self.decode(x)
-        target = self.processor.label_to_text(y)
-        cer_cum = []
-        wer_cum = []
-        for k in range(len(pred)):
-            cer_cum.append(cer(target[k], pred[k]))
-            wer_cum.append(wer(target[k], pred[k]))
-        cerr = sum(cer_cum)/len(cer_cum)
-        werr = sum(wer_cum)/len(wer_cum)
-        # self.log('val_cerr', cerr, on_step=False, on_epoch=True)
-        # self.log('val_werr', werr, on_step=False, on_epoch=True)
-
-        output = {'loss': loss, 'cer':cerr, 'wer': werr}
-        return output
-        # return loss, cerr, werr
-
-    def training_epoch_end(self,outputs):
-        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
-        self.logger.experiment.add_scalar("Loss/Train", avg_loss, self.current_epoch)
-        if self.current_epoch==1:
-            sample_input = torch.rand(32, 10000)
-            self.logger.experiment.add_graph(LitWav2Letter(self.manifest), sample_input)
-        # epoch_dictionary = {'loss': avg_loss}  
-        # return epoch_dictionary
-
-    def validation_epoch_end(self,outputs):
-        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
-        avg_cer = mean([x['cer'] for x in outputs])
-        avg_wer = mean([x['wer'] for x in outputs])
-        self.logger.experiment.add_scalar("Loss/Val", avg_loss, self.current_epoch)
-        self.logger.experiment.add_scalar("CER/Val", avg_cer, self.current_epoch)
-        self.logger.experiment.add_scalar("WER/Val", avg_wer, self.current_epoch)
-        # epoch_dictionary = {'loss': avg_loss}
-        # return epoch_dictionary
-
-
-    def decode(self, x, blank=28):
-        torch.no_grad()
-        x = self.forward(x)
-        x = nn.functional.log_softmax(x, dim=2)
-        out = torch.argmax(x, dim=2)
-        #print(out.squeeze())
-        pred = []
-        batch_size = x.shape[0]
-        for n in range(batch_size):
-            indices = []
-            prev_i = -1
-            for i in out[n]:
-                if i ==  prev_i:
-                    continue
-                if i == blank:
-                    prev_i = -1
-                    continue
-                prev_i = i
-                indices.append(i.item())
-            text = self.processor.indices_to_text(indices)
-            pred.append(self.processor.c_to_text(text))
-        return pred
 
 
