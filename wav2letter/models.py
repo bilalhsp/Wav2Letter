@@ -1,4 +1,6 @@
 from tabnanny import check
+from typing import Any, Optional
+from pytorch_lightning.utilities.types import STEP_OUTPUT
 import torch
 import torch.nn as nn
 import torchaudio
@@ -38,11 +40,11 @@ class LitWav2Letter(pl.LightningModule):
     def __init__(self) -> None:
         super(LitWav2Letter, self).__init__()
         # Loading the config file..!
-        manifest_file = os.path.join(os.path.dirname(__file__),'conf','lightning.yaml')
+        manifest_file = os.path.join(os.path.dirname(__file__),'conf','config_rf.yaml')#'lightning.yaml')
         with open(manifest_file, 'r') as f:
             manifest = yaml.load(f, Loader=yaml.FullLoader)
 
-        self.model_name = "wav2letter"
+        self.model_name = "wav2letter_puzzlelib"
         self.manifest = manifest
         self.results_dir = manifest["results_dir"]
         self.channels = manifest["channels"]
@@ -94,7 +96,8 @@ class LitWav2Letter(pl.LightningModule):
         # x = torch.transpose(x,1,2)
         # print(x.shape)
         #### librosa modification...!####
-        x = self.transform(x)
+        # x = self.transform(x)
+        x = torch.unsqueeze(x, dim=1)
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
@@ -215,21 +218,21 @@ class LitWav2Letter(pl.LightningModule):
 ### Modified for receptive fields#######
 
 class Wav2LetterRF(pl.LightningModule):
-    def __init__(self, manifest) -> None:
+    def __init__(self, model_config = 'config_rf.yaml') -> None:
         super(Wav2LetterRF, self).__init__()
         # Loading the config file..!
-        # manifest_file = os.path.join(os.path.dirname(__file__),'conf','config_rf.yaml')
-        # with open(manifest_file, 'r') as f:
-        #     manifest = yaml.load(f, Loader=yaml.FullLoader)
+        manifest_file = os.path.join(os.path.dirname(__file__), 'conf', model_config)
+        with open(manifest_file, 'r') as f:
+            self.manifest = yaml.load(f, Loader=yaml.FullLoader)
 
         self.model_name = "wav2letter_modified"
-        self.manifest = manifest
-        self.results_dir = manifest["results_dir"]
-        self.channels = manifest["channels"]
+        # self.manifest = manifest
+        self.results_dir = self.manifest["results_dir"]
+        self.channels = self.manifest["channels"]
         # self.hop_length = manifest["window_stride"]
         # self.win_length = manifest["window_size"]
         # self.n_fft = manifest["window_size"]
-        self.lr = manifest["learning_rate"]
+        self.lr = self.manifest["learning_rate"]
         
        #self.model = Wav2Letter2(self.channels)
         self.processor = Text_Processor()
@@ -339,24 +342,39 @@ class Wav2LetterRF(pl.LightningModule):
         return output
         # return loss, cerr, werr
 
-    def training_epoch_end(self,outputs):
-        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
-        self.logger.experiment.add_scalar("Loss/Train", avg_loss, self.current_epoch)
+    # def training_epoch_end(self,outputs):
+    #     avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
+    #     self.logger.experiment.add_scalar("Loss/Train", avg_loss, self.current_epoch)
         # if self.current_epoch==1:
         #     sample_input = torch.rand(32, 10000)
         #     self.logger.experiment.add_graph(Wav2LetterRF(), sample_input)
         # epoch_dictionary = {'loss': avg_loss}  
         # return epoch_dictionary
 
-    def validation_epoch_end(self,outputs):
-        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
-        avg_cer = mean([x['cer'] for x in outputs])
-        avg_wer = mean([x['wer'] for x in outputs])
-        self.logger.experiment.add_scalar("Loss/Val", avg_loss, self.current_epoch)
-        self.logger.experiment.add_scalar("CER/Val", avg_cer, self.current_epoch)
-        self.logger.experiment.add_scalar("WER/Val", avg_wer, self.current_epoch)
+    # In lightning 2.0, support for this hook has been revoked,
+    # replacing this with 'on_validation_epoch_end()' hook    
+    # def validation_epoch_end(self,outputs):
+    #     avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
+    #     avg_cer = mean([x['cer'] for x in outputs])
+    #     avg_wer = mean([x['wer'] for x in outputs])
+    #     self.logger.experiment.add_scalar("Loss/Val", avg_loss, self.current_epoch)
+    #     self.logger.experiment.add_scalar("CER/Val", avg_cer, self.current_epoch)
+    #     self.logger.experiment.add_scalar("WER/Val", avg_wer, self.current_epoch)
         # epoch_dictionary = {'loss': avg_loss}
         # return epoch_dictionary
+    
+    # def on_validation_epoch_end(self):
+           
+    #     avg_cer = mean([x['cer'] for x in outputs])
+    #     avg_wer = mean([x['wer'] for x in outputs])
+    #     self.logger.experiment.add_scalar("Loss/Val", avg_loss, self.current_epoch)
+    #     self.logger.experiment.add_scalar("CER/Val", avg_cer, self.current_epoch)
+    #     self.logger.experiment.add_scalar("WER/Val", avg_wer, self.current_epoch)
+
+        # return super().on_validation_epoch_end()
+
+    # def on_validation_batch_end(self, outputs: STEP_OUTPUT | None, batch: Any, batch_idx: int, dataloader_idx: int) -> None:
+    #     return super().on_validation_batch_end(outputs, batch, batch_idx, dataloader_idx)
 
 
     def decode(self, x, blank=28):

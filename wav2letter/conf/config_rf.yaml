@@ -1,27 +1,134 @@
-results_dir: /depot/jgmakin/data/auditory_cortex/pretrained_weights/w2l_modified/ #/single_gpu
+#results_dir: /depot/jgmakin/data/auditory_cortex/pretrained_weights/w2l_modified/ #/single_gpu
+# results_dir: /depot/jgmakin/data/auditory_cortex/pretrained_weights/w2l_modified/ #added on 11/4/22
+# added on 02/21/23 to save pretrained weights every 5th epochs on scratch
+results_dir: /scratch/gilbreth/ahmedb/wav2letter/modified_w2l/  
 data_dir: /scratch/gilbreth/ahmedb/data/LibriSpeech #/depot/jgmakin/data/LibriSpeech
 config_path: ./conf         # change this as per your directory structure to point to 'conf' folder
 vocab_file: vocab.letters.28
+force_redownload: False
 training_url: 
 - train-clean-100
 - train-clean-360
-#- train-other-500
-val_url: dev-clean
-test_url: test-clean
+- train-other-500
+val_url: 
+- dev-clean
+#- dev-other
+test_url: 
+- test-clean
+#- test-other
 train_manifest: train_manifest.csv 
 val_manifest: val_manifest.csv
 test_manifest: test_manifest.csv
 batch_size: 8
 learning_rate: 1.0e-4
-num_workers: 1
+num_workers: 0      # tried 16, got a warning of slowdown/freeze
 download: False
 channels: 1         # raw waveforms as input
 sample_rate: 16000
 window_size: 320        #I used 400 for training...!
 window_stride: 160
-# window: torch.hamming_window
+adv_robust: True
+norm_bound: 1.0e+1 
+# window: torch.hamming_windows
 
-
+model_name: 'wav2letter_modified'
+layer_params:
+- layer: 1
+  in_channels: 1
+  out_channels: 250
+  kernel_size:  31
+  stride: 20
+  dropout:  0.2
+- layer: 2
+  in_channels: 250
+  out_channels: 250 
+  kernel_size:  3
+  stride: 2
+  dropout:  0.2
+- layer: 3
+  in_channels: 250
+  out_channels: 250 
+  kernel_size:  3
+  stride: 2
+  dropout:  0.2
+- layer: 3
+  in_channels: 250
+  out_channels: 250 
+  kernel_size:  3
+  stride: 2
+  dropout:  0.2
+- layer: 4
+  in_channels: 250
+  out_channels: 250 
+  kernel_size:  3
+  stride: 2
+  dropout:  0.2
+- layer: 5
+  in_channels: 250
+  out_channels: 250 
+  kernel_size:  3
+  stride: 2
+  dropout:  0.2
+- layer: 6
+  in_channels: 250
+  out_channels: 250 
+  kernel_size:  3
+  stride: 1
+  dropout:  0.2
+- layer: 7
+  in_channels: 250
+  out_channels: 250 
+  kernel_size:  3
+  stride: 1
+  dropout:  0.2
+- layer: 8
+  in_channels: 250
+  out_channels: 250 
+  kernel_size:  3
+  stride: 1
+  dropout:  0.2
+- layer: 9
+  in_channels: 250
+  out_channels: 250 
+  kernel_size:  7
+  stride: 1
+  dropout:  0.2
+- layer: 10
+  in_channels: 250
+  out_channels: 250 
+  kernel_size:  7
+  stride: 1
+  dropout:  0.2
+- layer: 11
+  in_channels: 250
+  out_channels: 250 
+  kernel_size:  7
+  stride: 1
+  dropout:  0.3
+- layer: 12
+  in_channels: 250
+  out_channels: 250 
+  kernel_size:  7
+  stride: 1
+  dropout:  0.3
+- layer: 13
+  in_channels: 250
+  out_channels: 2000 
+  kernel_size:  31
+  stride: 1
+  dropout:  0.3
+- layer: 14
+  in_channels: 2000
+  out_channels: 2000 
+  kernel_size:  1
+  stride: 1
+  dropout:  0.4
+- layer: 15
+  in_channels: 2000
+  out_channels: 29 
+  kernel_size:  1
+  stride: 1
+  dropout:  0.0
 
 
 # torch=1.10.0, torchaudio=0.10.0, datasets=1.15.1, auditory-ctx
