@@ -1,14 +1,15 @@
 #!/bin/sh
 
-# --output=./result_ready_dataset.out
+# --output=./result_download_dataset.out
 
-#SBATCH	-A jgmakin-n
+#SBATCH	-A training
 
 #SBATCH --nodes=1 
 #SBATCH --gres=gpu:1
-#SBATCH --ntasks-per-node=2
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=2
 # --mem=0
-#SBATCH --time=04:00:00
+#SBATCH --time=1-04:00:00
  
 hostname
 echo $CUDA_VISIBLE_DEVICES
@@ -30,6 +31,6 @@ export PYTHONFAULTHANDLER=1
 export NCCL_SOCKET_IFNAME=^lo,eth,en,docker0
 
 
-python ../scripts/prepare_LibriSpeech.py $@
+python ../scripts/download_LibriSpeech.py $@
 #srun python run_lightning.py
 # python run_lightning.py

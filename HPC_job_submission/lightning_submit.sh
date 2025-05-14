@@ -2,13 +2,14 @@
 
 #SBATCH --output=./result_lightning.out
 
-#SBATCH	-A standby    
-# --constraint=E|F
+#SBATCH	-A standby
 
+
+# --constraint=E|F
 #|G|I|J|K
 
 
-#SBATCH --nodes=2 
+#SBATCH --nodes=4
 #SBATCH --gres=gpu:2
 #SBATCH --ntasks-per-node=2
 #SBATCH --mem=0
@@ -16,12 +17,14 @@
  
 hostname
 echo $CUDA_VISIBLE_DEVICES
+echo "slurm job ID:"
+echo $SLURM_JOBID
 # module purge
 module load anaconda/2020.11-py38
 module load cuda/11.2.0
 module load use.own
-module load conda-env/w2l_cortex-py3.8.5
-# module load conda-env/wav2letter-py3.8.5
+# module load conda-env/w2l_cortex-py3.8.5
+module load conda-env/wav2letter-py3.8.5
 # module load learning/conda-2020.11-py38-gpu
 # module load conda-env/wav2letter_lightning-py3.8.5
 
