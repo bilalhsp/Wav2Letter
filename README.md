@@ -81,6 +81,11 @@ print("Predicted transcription:", pred_text[0])
 
 ## ⚙️ Training
 
+First, download and prepare the LibriSpeech dataset. You can follow the setup in this notebook:
+
+👉 [Setting_up_LS_data.ipynb](./notebooks/Setting_up_LS_data.ipynb)
+
+
 To train the model:
 
 ```bash
